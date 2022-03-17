@@ -21,6 +21,7 @@ jobs:
         with:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           tf_storage_account: ${{ secrets.TF_STORAGE_ACCOUNT }}
+          resource_group_name: rg-test-001
   build:
     runs-on: ubuntu-20.04
     steps:
