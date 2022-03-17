@@ -1,7 +1,13 @@
 variable "application_name" {
   type        = string
   description = "The name of your application"
-  default     = "nubesgen-judubois-000"
+  default     = "demo-1307-9599"
+}
+
+variable "terraform_storage_account" {
+  type        = string
+  description = "When using an Azure back-end, the name of the Azure Storage Account that stores the Terraform state"
+  default     = ""
 }
 
 variable "environment" {

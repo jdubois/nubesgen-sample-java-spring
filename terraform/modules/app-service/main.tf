@@ -1,17 +1,16 @@
 terraform {
   required_providers {
     azurecaf = {
-      source = "aztfmod/azurecaf"
-      version = "1.2.6"
+      source  = "aztfmod/azurecaf"
+      version = "1.2.11"
     }
   }
 }
 
 resource "azurecaf_name" "app_service_plan" {
-  name            = var.application_name
-  resource_type   = "azurerm_app_service_plan"
-  suffixes        = [var.environment, "001"]
-  random_length   = 5
+  name          = var.application_name
+  resource_type = "azurerm_app_service_plan"
+  suffixes      = [var.environment]
 }
 
 # This creates the plan that the service use
@@ -29,16 +28,15 @@ resource "azurerm_app_service_plan" "application" {
   }
 
   sku {
-    tier = "Basic"
-    size = "B1"
+    tier = "Standard"
+    size = "S1"
   }
 }
 
 resource "azurecaf_name" "app_service" {
-  name            = var.application_name
-  resource_type   = "azurerm_app_service"
-  suffixes        = [var.environment, "001"]
-  random_length   = 5
+  name          = var.application_name
+  resource_type = "azurerm_app_service"
+  suffixes      = [var.environment]
 }
 
 # This creates the service definition
@@ -63,14 +61,7 @@ resource "azurerm_app_service" "application" {
   app_settings = {
     "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
 
-    // Monitoring with Azure Application Insights
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = var.azure_application_insights_instrumentation_key
-
     # These are app specific environment variables
-    "SPRING_PROFILES_ACTIVE"     = "prod,azure"
-
-    "SPRING_DATASOURCE_URL"      = "jdbc:postgresql://${var.database_url}"
-    "SPRING_DATASOURCE_USERNAME" = var.database_username
-    "SPRING_DATASOURCE_PASSWORD" = var.database_password
+    "SPRING_PROFILES_ACTIVE" = "prod,azure"
   }
 }

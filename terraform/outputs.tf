@@ -1,10 +1,10 @@
-output "application_hostname" {
-  value       = module.application.application_hostname
+output "application_url" {
+  value       = module.application.application_url
   description = "The Web application URL."
 }
 
 output "resource_group" {
-  value       = azurecaf_name.resource_group.name
+  value       = azurerm_resource_group.main.name
   description = "The resource group."
 }
 
