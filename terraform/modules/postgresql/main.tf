@@ -1,17 +1,16 @@
 terraform {
   required_providers {
     azurecaf = {
-      source = "aztfmod/azurecaf"
-      version = "1.2.6"
+      source  = "aztfmod/azurecaf"
+      version = "1.2.16"
     }
   }
 }
 
 resource "azurecaf_name" "postgresql_server" {
   name          = var.application_name
-  resource_type = "azurerm_postgresql_server"
-  suffixes      = [var.environment, "001"]
-  random_length = 5
+  resource_type = "azurerm_postgresql_flexible_server"
+  suffixes      = [var.environment]
 }
 
 resource "random_password" "password" {
@@ -20,55 +19,53 @@ resource "random_password" "password" {
   override_special = "_%@"
 }
 
-resource "azurerm_postgresql_server" "database" {
+resource "azurerm_postgresql_flexible_server" "database" {
   name                = azurecaf_name.postgresql_server.result
   resource_group_name = var.resource_group
   location            = var.location
 
-  administrator_login          = var.administrator_login
-  administrator_login_password = random_password.password.result
+  administrator_login    = var.administrator_login
+  administrator_password = random_password.password.result
 
-  sku_name                     = "B_Gen5_1"
-  storage_mb                   = 5120
+  sku_name                     = "B_Standard_B1ms"
+  storage_mb                   = 32768
   backup_retention_days        = 7
+  version                      = "13"
   geo_redundant_backup_enabled = false
-  auto_grow_enabled            = true
-  version                      = "11"
-  ssl_enforcement_enabled      = true
 
   tags = {
     "environment"      = var.environment
     "application-name" = var.application_name
   }
+
+  lifecycle {
+    ignore_changes = [ zone, high_availability.0.standby_availability_zone ]
+  }
 }
 
 resource "azurecaf_name" "postgresql_database" {
   name          = var.application_name
-  resource_type = "azurerm_postgresql_database"
-  suffixes      = [var.environment, "001"]
-  random_length = 5
+  resource_type = "azurerm_postgresql_flexible_server_database"
+  suffixes      = [var.environment]
 }
 
-resource "azurerm_postgresql_database" "database" {
+resource "azurerm_postgresql_flexible_server_database" "database" {
   name                = azurecaf_name.postgresql_database.result
-  resource_group_name = var.resource_group
-  server_name         = azurerm_postgresql_server.database.name
-  charset             = "UTF8"
-  collation           = "English_United States.1252"
+  server_id           = azurerm_postgresql_flexible_server.database.id
+  charset             = "utf8"
+  collation           = "en_US.utf8"
 }
 
 resource "azurecaf_name" "postgresql_firewall_rule" {
   name          = var.application_name
-  resource_type = "azurerm_postgresql_firewall_rule"
-  suffixes      = [var.environment, "001"]
-  random_length = 5
+  resource_type = "azurerm_postgresql_flexible_server_firewall_rule"
+  suffixes      = [var.environment]
 }
 
 # This rule is to enable the 'Allow access to Azure services' checkbox
-resource "azurerm_postgresql_firewall_rule" "database" {
+resource "azurerm_postgresql_flexible_server_firewall_rule" "database" {
   name                = azurecaf_name.postgresql_firewall_rule.result
-  resource_group_name = var.resource_group
-  server_name         = azurerm_postgresql_server.database.name
+  server_id           = azurerm_postgresql_flexible_server.database.id
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }

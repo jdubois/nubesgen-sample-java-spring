@@ -1,7 +1,7 @@
 variable "application_name" {
   type        = string
   description = "The name of your application"
-  default     = "demo-1307-9599"
+  default     = "nubesgen-judubois-000"
 }
 
 variable "terraform_storage_account" {
